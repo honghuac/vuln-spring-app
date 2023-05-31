@@ -1,7 +1,7 @@
 FROM maven:3.5-jdk-9 as build
-ENV DD_APPSEC_ENABLED=true
-WORKDIR /app
 
+WORKDIR /app
+RUN curl -Lo dd-java-agent.jar https://dtdg.co/latest-java-tracer
 COPY ./app/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
@@ -16,4 +16,5 @@ WORKDIR /app
 
 COPY --from=build /app/target/ROOT.war /usr/local/tomcat/webapps/
 EXPOSE 8080
+ENTRYPOINT ["java" , "-javaagent:../dd-java-agent.jar", "-Ddd.trace.sample.rate=1", "-jar" , "target/notes-0.0.1-SNAPSHOT.jar"]  
 CMD ["catalina.sh", "run"]
